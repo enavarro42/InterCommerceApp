@@ -4,6 +4,7 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import com.inter.intercommerceapp.domain.model.Product
+import com.inter.intercommerceapp.presentation.components.productCardTestTag
 import com.inter.intercommerceapp.ui.theme.InterCommerceAppTheme
 import org.junit.Assert.assertTrue
 import org.junit.Rule
@@ -54,7 +55,7 @@ class CatalogScreenTest {
         setContent(CatalogUiState(isLoading = false, products = products))
 
         products.forEach { product ->
-            composeTestRule.onNodeWithTag(productGridItemTestTag(product.id)).assertExists()
+            composeTestRule.onNodeWithTag(productCardTestTag(product.id)).assertExists()
         }
     }
 

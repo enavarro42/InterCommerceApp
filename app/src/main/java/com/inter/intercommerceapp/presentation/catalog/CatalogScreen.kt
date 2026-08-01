@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -19,10 +18,7 @@ import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -39,14 +35,14 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import coil.compose.AsyncImage
+import com.inter.intercommerceapp.R
 import com.inter.intercommerceapp.domain.model.Product
-import java.io.File
+import com.inter.intercommerceapp.presentation.components.ProductCard
 import kotlinx.coroutines.flow.map
 
 private const val LOAD_MORE_THRESHOLD = 3
@@ -57,8 +53,6 @@ const val CATALOG_ERROR_TEST_TAG = "catalog_error"
 const val CATALOG_RETRY_BUTTON_TEST_TAG = "catalog_retry_button"
 const val CATALOG_SEARCH_FIELD_TEST_TAG = "catalog_search_field"
 const val CATALOG_OFFLINE_RETRY_BUTTON_TEST_TAG = "catalog_offline_retry_button"
-
-fun productGridItemTestTag(productId: Int) = "product_item_$productId"
 
 @Composable
 fun CatalogRoute(
@@ -162,7 +156,7 @@ private fun CatalogSearchBar(
                 .statusBarsPadding()
                 .padding(12.dp)
                 .testTag(CATALOG_SEARCH_FIELD_TEST_TAG),
-            placeholder = { Text("Buscar productos") },
+            placeholder = { Text(stringResource(R.string.catalog_search_placeholder)) },
             singleLine = true,
         )
     }
@@ -183,7 +177,7 @@ private fun OfflineBanner(onRetry: () -> Unit, modifier: Modifier = Modifier) {
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(
-                text = "Sin conexión, mostrando datos guardados",
+                text = stringResource(R.string.catalog_offline_banner_message),
                 color = MaterialTheme.colorScheme.onSecondaryContainer,
                 fontSize = MaterialTheme.typography.bodySmall.fontSize,
                 modifier = Modifier.weight(1f),
@@ -192,7 +186,7 @@ private fun OfflineBanner(onRetry: () -> Unit, modifier: Modifier = Modifier) {
                 onClick = onRetry,
                 modifier = Modifier.testTag(CATALOG_OFFLINE_RETRY_BUTTON_TEST_TAG),
             ) {
-                Text("Reintentar")
+                Text(stringResource(R.string.action_retry))
             }
         }
     }
@@ -218,7 +212,7 @@ private fun CatalogErrorState(
                 onClick = onRetry,
                 modifier = Modifier.testTag(CATALOG_RETRY_BUTTON_TEST_TAG),
             ) {
-                Text("Reintentar")
+                Text(stringResource(R.string.action_retry))
             }
         }
     }
@@ -241,7 +235,7 @@ private fun ProductGrid(
         horizontalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         items(products, key = { it.id }) { product ->
-            ProductGridItem(product = product, onClick = { onProductClick(product) })
+            ProductCard(product = product, onClick = { onProductClick(product) })
         }
         if (isLoadingMore) {
             item(span = { GridItemSpan(maxLineSpan) }) {
@@ -254,40 +248,6 @@ private fun ProductGrid(
                     CircularProgressIndicator(modifier = Modifier.size(28.dp))
                 }
             }
-        }
-    }
-}
-
-@Composable
-private fun ProductGridItem(
-    product: Product,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    Card(
-        onClick = onClick,
-        modifier = modifier
-            .fillMaxWidth()
-            .testTag(productGridItemTestTag(product.id)),
-        shape = RoundedCornerShape(8.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
-    ) {
-        Column(modifier = Modifier.padding(8.dp)) {
-            AsyncImage(
-                model = product.localThumbnailPath?.let(::File) ?: product.thumbnail,
-                contentDescription = product.title,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .aspectRatio(1f)
-                    .clip(RoundedCornerShape(8.dp)),
-            )
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(text = product.title, maxLines = 1)
-            Text(
-                text = "$${product.price}",
-                color = MaterialTheme.colorScheme.primary,
-            )
         }
     }
 }

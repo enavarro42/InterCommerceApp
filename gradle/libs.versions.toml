@@ -58,6 +58,7 @@ room-compiler = { group = "androidx.room", name = "room-compiler", version.ref =
 
 # Images
 coil-compose = { group = "io.coil-kt", name = "coil-compose", version.ref = "coil" }
+coil-test = { group = "io.coil-kt", name = "coil-test", version.ref = "coil" }
 
 # Navigation
 androidx-navigation-compose = { group = "androidx.navigation", name = "navigation-compose", version.ref = "navigationCompose" }

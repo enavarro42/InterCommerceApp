@@ -1,3 +1,10 @@
 <resources>
     <string name="app_name">InterCommerceApp</string>
+
+    <string name="catalog_search_placeholder">Buscar productos</string>
+    <string name="catalog_offline_banner_message">Sin conexión, mostrando datos guardados</string>
+    <string name="action_retry">Reintentar</string>
+
+    <string name="product_price_format">$%s</string>
+    <string name="product_image_error_symbol">!</string>
 </resources>
