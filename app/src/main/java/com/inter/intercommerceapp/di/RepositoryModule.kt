@@ -1,6 +1,8 @@
 package com.inter.intercommerceapp.di
 
+import com.inter.intercommerceapp.data.repository.CartRepositoryImpl
 import com.inter.intercommerceapp.data.repository.ProductRepositoryImpl
+import com.inter.intercommerceapp.domain.repository.CartRepository
 import com.inter.intercommerceapp.domain.repository.ProductRepository
 import dagger.Binds
 import dagger.Module
@@ -15,4 +17,8 @@ abstract class RepositoryModule {
     @Binds
     @Singleton
     abstract fun bindProductRepository(impl: ProductRepositoryImpl): ProductRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindCartRepository(impl: CartRepositoryImpl): CartRepository
 }
