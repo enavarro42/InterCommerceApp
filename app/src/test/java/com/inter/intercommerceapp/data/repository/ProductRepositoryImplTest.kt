@@ -88,6 +88,22 @@ class ProductRepositoryImplTest {
     }
 
     @Test
+    fun `getProductById emits fresh data and writes to cache on a successful remote fetch`() = runTest {
+        val remoteProduct = product(1)
+        coEvery { remoteDataSource.getProductById(1) } returns remoteProduct
+        coEvery { localDataSource.cacheProduct(remoteProduct) } answers { cachedProduct.value = remoteProduct }
+
+        repository.getProductById(1).test {
+            val result = awaitItem()
+            assertTrue(result.isSuccess)
+            assertEquals(1, result.getOrNull()?.product?.id)
+            assertFalse(result.getOrNull()?.isFromCache ?: true)
+            cancelAndIgnoreRemainingEvents()
+        }
+        coVerify { localDataSource.cacheProduct(remoteProduct) }
+    }
+
+    @Test
     fun `getProductById falls back to the cached product when the remote fetch fails`() = runTest {
         cachedProduct.value = product(1)
         coEvery { remoteDataSource.getProductById(1) } throws ProductError.NetworkUnavailable()
@@ -95,7 +111,8 @@ class ProductRepositoryImplTest {
         repository.getProductById(1).test {
             val result = awaitItem()
             assertTrue(result.isSuccess)
-            assertEquals(1, result.getOrNull()?.id)
+            assertEquals(1, result.getOrNull()?.product?.id)
+            assertTrue(result.getOrNull()?.isFromCache ?: false)
             cancelAndIgnoreRemainingEvents()
         }
     }

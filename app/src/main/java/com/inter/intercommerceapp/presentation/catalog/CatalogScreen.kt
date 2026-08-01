@@ -58,6 +58,7 @@ const val CATALOG_OFFLINE_RETRY_BUTTON_TEST_TAG = "catalog_offline_retry_button"
 fun CatalogRoute(
     modifier: Modifier = Modifier,
     viewModel: CatalogViewModel = hiltViewModel(),
+    onProductClick: (Product) -> Unit = {},
 ) {
     val uiState by viewModel.uiState.collectAsState()
     CatalogScreen(
@@ -65,6 +66,7 @@ fun CatalogRoute(
         onSearchQueryChanged = viewModel::onSearchQueryChanged,
         onLoadNextPage = viewModel::loadNextPage,
         onRetry = viewModel::retry,
+        onProductClick = onProductClick,
         modifier = modifier,
     )
 }

@@ -1,6 +1,6 @@
 package com.inter.intercommerceapp.domain.repository
 
-import com.inter.intercommerceapp.domain.model.Product
+import com.inter.intercommerceapp.domain.model.ProductResult
 import com.inter.intercommerceapp.domain.model.ProductsResult
 import kotlinx.coroutines.flow.Flow
 
@@ -10,5 +10,5 @@ interface ProductRepository {
 
     fun searchProducts(query: String): Flow<ProductsResult>
 
-    fun getProductById(id: Int): Flow<Result<Product>>
+    fun getProductById(id: Int): Flow<Result<ProductResult>>
 }

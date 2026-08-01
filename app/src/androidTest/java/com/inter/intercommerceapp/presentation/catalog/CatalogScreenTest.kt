@@ -6,6 +6,7 @@ import androidx.compose.ui.test.performClick
 import com.inter.intercommerceapp.domain.model.Product
 import com.inter.intercommerceapp.presentation.components.productCardTestTag
 import com.inter.intercommerceapp.ui.theme.InterCommerceAppTheme
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
@@ -29,7 +30,11 @@ class CatalogScreenTest {
         images = emptyList(),
     )
 
-    private fun setContent(uiState: CatalogUiState, onRetry: () -> Unit = {}) {
+    private fun setContent(
+        uiState: CatalogUiState,
+        onRetry: () -> Unit = {},
+        onProductClick: (Product) -> Unit = {},
+    ) {
         composeTestRule.setContent {
             InterCommerceAppTheme {
                 CatalogScreen(
@@ -37,6 +42,7 @@ class CatalogScreenTest {
                     onSearchQueryChanged = {},
                     onLoadNextPage = {},
                     onRetry = onRetry,
+                    onProductClick = onProductClick,
                 )
             }
         }
@@ -91,5 +97,18 @@ class CatalogScreenTest {
         setContent(CatalogUiState(errorMessage = "Network error", products = listOf(product(1))))
 
         composeTestRule.onNodeWithTag(CATALOG_ERROR_TEST_TAG).assertDoesNotExist()
+    }
+
+    @Test
+    fun tappingAProductCardInvokesOnProductClickWithThatProduct() {
+        val target = product(1)
+        var clicked: Product? = null
+        setContent(
+            CatalogUiState(products = listOf(target, product(2))),
+            onProductClick = { clicked = it },
+        )
+
+        composeTestRule.onNodeWithTag(productCardTestTag(target.id)).performClick()
+        assertEquals(target, clicked)
     }
 }

@@ -7,4 +7,10 @@
 
     <string name="product_price_format">$%s</string>
     <string name="product_image_error_symbol">!</string>
+
+    <string name="action_back">Volver</string>
+    <string name="product_detail_rating_format">★ %s</string>
+    <string name="product_detail_stock_format">Stock: %s</string>
+    <string name="product_detail_brand_format">Marca: %s</string>
+    <string name="product_detail_category_format">Categoría: %s</string>
 </resources>

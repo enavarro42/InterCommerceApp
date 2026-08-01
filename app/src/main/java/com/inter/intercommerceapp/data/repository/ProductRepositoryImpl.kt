@@ -5,6 +5,7 @@ import com.inter.intercommerceapp.data.local.image.ProductImageCache
 import com.inter.intercommerceapp.data.remote.RemoteProductDataSource
 import com.inter.intercommerceapp.domain.model.Product
 import com.inter.intercommerceapp.domain.model.ProductError
+import com.inter.intercommerceapp.domain.model.ProductResult
 import com.inter.intercommerceapp.domain.model.ProductsResult
 import com.inter.intercommerceapp.domain.repository.ProductRepository
 import javax.inject.Inject
@@ -66,18 +67,21 @@ class ProductRepositoryImpl @Inject constructor(
             .awaitAll()
     }
 
-    override fun getProductById(id: Int): Flow<Result<Product>> = flow {
+    override fun getProductById(id: Int): Flow<Result<ProductResult>> = flow {
+        var refreshSucceeded = false
         try {
             val remoteProduct = remoteDataSource.getProductById(id)
             val localPath = imageCache.getOrDownload(remoteProduct.id, remoteProduct.thumbnail)
             localDataSource.cacheProduct(remoteProduct.copy(localThumbnailPath = localPath))
+            refreshSucceeded = true
         } catch (e: ProductError) {
             if (localDataSource.getCachedProductById(id).first() == null) throw e
         }
         emitAll(
             localDataSource.getCachedProductById(id)
                 .map { cached ->
-                    cached?.let { Result.success(it) } ?: Result.failure(ProductError.NotFound(id))
+                    cached?.let { Result.success(ProductResult(it, isFromCache = !refreshSucceeded)) }
+                        ?: Result.failure(ProductError.NotFound(id))
                 }
         )
     }
