@@ -3,6 +3,7 @@ package com.inter.intercommerceapp.di
 import android.content.Context
 import androidx.room.Room
 import com.inter.intercommerceapp.data.local.db.AppDatabase
+import com.inter.intercommerceapp.data.local.db.CartDao
 import com.inter.intercommerceapp.data.local.db.ProductDao
 import dagger.Module
 import dagger.Provides
@@ -25,4 +26,8 @@ object DatabaseModule {
     @Provides
     @Singleton
     fun provideProductDao(database: AppDatabase): ProductDao = database.productDao()
+
+    @Provides
+    @Singleton
+    fun provideCartDao(database: AppDatabase): CartDao = database.cartDao()
 }
