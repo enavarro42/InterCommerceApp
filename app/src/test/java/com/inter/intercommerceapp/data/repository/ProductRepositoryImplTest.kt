@@ -2,6 +2,7 @@ package com.inter.intercommerceapp.data.repository
 
 import app.cash.turbine.test
 import com.inter.intercommerceapp.data.local.LocalProductDataSource
+import com.inter.intercommerceapp.data.local.image.ProductImageCache
 import com.inter.intercommerceapp.data.remote.RemoteProductDataSource
 import com.inter.intercommerceapp.domain.model.Product
 import com.inter.intercommerceapp.domain.model.ProductError
@@ -21,6 +22,7 @@ class ProductRepositoryImplTest {
 
     private val remoteDataSource = mockk<RemoteProductDataSource>()
     private val localDataSource = mockk<LocalProductDataSource>()
+    private val imageCache = mockk<ProductImageCache>()
     private lateinit var repository: ProductRepositoryImpl
 
     private val cachedProducts = MutableStateFlow<List<Product>>(emptyList())
@@ -44,7 +46,8 @@ class ProductRepositoryImplTest {
     fun setUp() {
         every { localDataSource.getCachedProducts() } returns cachedProducts
         every { localDataSource.getCachedProductById(any()) } returns cachedProduct
-        repository = ProductRepositoryImpl(remoteDataSource, localDataSource)
+        coEvery { imageCache.getOrDownload(any(), any()) } returns null
+        repository = ProductRepositoryImpl(remoteDataSource, localDataSource, imageCache)
     }
 
     @Test

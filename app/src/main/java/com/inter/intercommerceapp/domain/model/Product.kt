@@ -12,4 +12,5 @@ data class Product(
     val brand: String?,
     val thumbnail: String,
     val images: List<String>,
+    val localThumbnailPath: String? = null,
 )

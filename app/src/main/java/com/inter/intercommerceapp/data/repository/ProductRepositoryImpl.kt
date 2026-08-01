@@ -1,12 +1,16 @@
 package com.inter.intercommerceapp.data.repository
 
 import com.inter.intercommerceapp.data.local.LocalProductDataSource
+import com.inter.intercommerceapp.data.local.image.ProductImageCache
 import com.inter.intercommerceapp.data.remote.RemoteProductDataSource
 import com.inter.intercommerceapp.domain.model.Product
 import com.inter.intercommerceapp.domain.model.ProductError
 import com.inter.intercommerceapp.domain.model.ProductsResult
 import com.inter.intercommerceapp.domain.repository.ProductRepository
 import javax.inject.Inject
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.first
@@ -16,6 +20,7 @@ import kotlinx.coroutines.flow.map
 class ProductRepositoryImpl @Inject constructor(
     private val remoteDataSource: RemoteProductDataSource,
     private val localDataSource: LocalProductDataSource,
+    private val imageCache: ProductImageCache,
 ) : ProductRepository {
 
     // La función de busqueda no dispone de un grupo de cache propio y persistente los resultados de la última consulta realizada con exito
@@ -27,7 +32,7 @@ class ProductRepositoryImpl @Inject constructor(
         var refreshSucceeded = false
         try {
             val remoteProducts = remoteDataSource.getProducts(limit, skip)
-            localDataSource.replaceCachedProducts(remoteProducts)
+            localDataSource.replaceCachedProducts(withLocalThumbnails(remoteProducts))
             refreshSucceeded = true
         } catch (e: ProductError) {
             if (localDataSource.getCachedProducts().first().isEmpty()) throw e
@@ -50,10 +55,22 @@ class ProductRepositoryImpl @Inject constructor(
         }
     }
 
+    private suspend fun withLocalThumbnails(products: List<Product>): List<Product> = coroutineScope {
+        products
+            .map { product ->
+                async {
+                    val localPath = imageCache.getOrDownload(product.id, product.thumbnail)
+                    product.copy(localThumbnailPath = localPath)
+                }
+            }
+            .awaitAll()
+    }
+
     override fun getProductById(id: Int): Flow<Result<Product>> = flow {
         try {
             val remoteProduct = remoteDataSource.getProductById(id)
-            localDataSource.cacheProduct(remoteProduct)
+            val localPath = imageCache.getOrDownload(remoteProduct.id, remoteProduct.thumbnail)
+            localDataSource.cacheProduct(remoteProduct.copy(localThumbnailPath = localPath))
         } catch (e: ProductError) {
             if (localDataSource.getCachedProductById(id).first() == null) throw e
         }

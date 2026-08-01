@@ -16,5 +16,6 @@ data class ProductEntity(
     val category: String,
     val thumbnail: String,
     val images: List<String>,
+    val localThumbnailPath: String? = null,
     val cachedAt: Long,
 )

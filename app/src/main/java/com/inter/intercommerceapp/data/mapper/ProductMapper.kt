@@ -32,6 +32,7 @@ object ProductMapper {
         brand = entity.brand,
         thumbnail = entity.thumbnail,
         images = entity.images,
+        localThumbnailPath = entity.localThumbnailPath,
     )
 
     fun toEntity(product: Product, cachedAt: Long = System.currentTimeMillis()): ProductEntity = ProductEntity(
@@ -46,6 +47,7 @@ object ProductMapper {
         category = product.category,
         thumbnail = product.thumbnail,
         images = product.images,
+        localThumbnailPath = product.localThumbnailPath,
         cachedAt = cachedAt,
     )
 }
