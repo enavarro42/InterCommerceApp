@@ -78,6 +78,18 @@ class LocalProductDataSourceTest {
     }
 
     @Test
+    fun `cacheProduct delegates to dao insertAll via the mapper without clearing`() = runTest {
+        val slot = slot<List<ProductEntity>>()
+        coEvery { dao.insertAll(capture(slot)) } returns Unit
+
+        dataSource.cacheProduct(ProductMapper.toDomain(entity(1)))
+
+        assertEquals(1, slot.captured.size)
+        assertEquals(1, slot.captured.first().id)
+        coVerify(exactly = 0) { dao.clear() }
+    }
+
+    @Test
     fun `clearCache delegates to dao clear`() = runTest {
         coEvery { dao.clear() } returns Unit
 

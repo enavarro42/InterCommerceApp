@@ -21,6 +21,10 @@ class LocalProductDataSource @Inject constructor(
         dao.replaceAll(products.map { ProductMapper.toEntity(it) })
     }
 
+    suspend fun cacheProduct(product: Product) {
+        dao.insertAll(listOf(ProductMapper.toEntity(product)))
+    }
+
     suspend fun clearCache() {
         dao.clear()
     }
