@@ -4,6 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.inter.intercommerceapp.presentation.cart.CartRoute
 import com.inter.intercommerceapp.presentation.catalog.CatalogRoute
 import com.inter.intercommerceapp.presentation.productdetail.ProductDetailRoute
 import kotlinx.serialization.Serializable
@@ -13,6 +14,9 @@ object CatalogDestination
 
 @Serializable
 data class ProductDetailDestination(val productId: Int)
+
+@Serializable
+object CartDestination
 
 @Composable
 fun AppNavHost() {
@@ -27,6 +31,9 @@ fun AppNavHost() {
         }
         composable<ProductDetailDestination> {
             ProductDetailRoute(onBack = { navController.navigateUp() })
+        }
+        composable<CartDestination> {
+            CartRoute()
         }
     }
 }
