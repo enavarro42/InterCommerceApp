@@ -7,7 +7,6 @@
     <string name="action_retry">Reintentar</string>
 
     <string name="product_price_format">$%s</string>
-    <string name="product_image_error_symbol">!</string>
 
     <string name="action_back">Volver</string>
     <string name="product_detail_stock_available_format">En stock · %s disponibles</string>

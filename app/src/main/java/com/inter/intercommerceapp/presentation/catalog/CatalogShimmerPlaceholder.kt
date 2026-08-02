@@ -35,6 +35,7 @@ const val CATALOG_SHIMMER_TEST_TAG = "catalog_shimmer"
 
 @Composable
 fun CatalogShimmerPlaceholder(modifier: Modifier = Modifier) {
+    val shimmerColor = shimmerColor()
     LazyVerticalGrid(
         columns = GridCells.Fixed(2),
         modifier = modifier
@@ -45,14 +46,13 @@ fun CatalogShimmerPlaceholder(modifier: Modifier = Modifier) {
         horizontalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         items(SHIMMER_PLACEHOLDER_COUNT) {
-            ShimmerTile()
+            ShimmerTile(shimmerColor = shimmerColor)
         }
     }
 }
 
 @Composable
-private fun ShimmerTile(modifier: Modifier = Modifier) {
-    val shimmerColor = shimmerColor()
+private fun ShimmerTile(shimmerColor: Color, modifier: Modifier = Modifier) {
     Column(modifier = modifier.fillMaxWidth()) {
         Box(
             modifier = Modifier

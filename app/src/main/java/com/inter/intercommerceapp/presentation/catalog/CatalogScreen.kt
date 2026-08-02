@@ -34,7 +34,6 @@ import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.snapshotFlow
@@ -47,6 +46,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.inter.intercommerceapp.R
 import com.inter.intercommerceapp.domain.model.Product
 import com.inter.intercommerceapp.presentation.components.CartIconButton
@@ -69,7 +69,7 @@ fun CatalogRoute(
     onProductClick: (Product) -> Unit = {},
     onCartClick: () -> Unit = {},
 ) {
-    val uiState by viewModel.uiState.collectAsState()
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     CatalogScreen(
         uiState = uiState,
         onSearchQueryChanged = viewModel::onSearchQueryChanged,

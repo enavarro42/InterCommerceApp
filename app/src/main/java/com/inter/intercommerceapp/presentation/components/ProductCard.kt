@@ -1,11 +1,8 @@
 package com.inter.intercommerceapp.presentation.components
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -15,21 +12,20 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.painter.ColorPainter
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import coil.compose.SubcomposeAsyncImage
+import coil.compose.AsyncImage
 import com.inter.intercommerceapp.R
 import com.inter.intercommerceapp.domain.model.Product
 import com.inter.intercommerceapp.ui.theme.InterCommerceAppTheme
 import java.io.File
 
-const val PRODUCT_CARD_IMAGE_LOADING_TEST_TAG = "product_card_image_loading"
-const val PRODUCT_CARD_IMAGE_ERROR_TEST_TAG = "product_card_image_error"
+const val PRODUCT_CARD_IMAGE_TEST_TAG = "product_card_image"
 
 fun productCardTestTag(productId: Int) = "product_card_$productId"
 
@@ -49,15 +45,16 @@ fun ProductCard(
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
     ) {
         Column(modifier = Modifier.padding(8.dp)) {
-            SubcomposeAsyncImage(
+            AsyncImage(
                 model = product.localThumbnailPath?.let(::File) ?: product.thumbnail,
                 contentDescription = product.title,
+                placeholder = ColorPainter(MaterialTheme.colorScheme.surfaceVariant),
+                error = ColorPainter(MaterialTheme.colorScheme.errorContainer),
                 modifier = Modifier
                     .fillMaxWidth()
                     .aspectRatio(1f)
-                    .clip(RoundedCornerShape(8.dp)),
-                loading = { ProductImageLoadingPlaceholder(modifier = Modifier.fillMaxSize()) },
-                error = { ProductImageErrorPlaceholder(modifier = Modifier.fillMaxSize()) },
+                    .clip(RoundedCornerShape(8.dp))
+                    .testTag(PRODUCT_CARD_IMAGE_TEST_TAG),
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(text = product.title, maxLines = 1)
@@ -66,31 +63,6 @@ fun ProductCard(
                 color = MaterialTheme.colorScheme.primary,
             )
         }
-    }
-}
-
-@Composable
-private fun ProductImageLoadingPlaceholder(modifier: Modifier = Modifier) {
-    Box(
-        modifier = modifier
-            .background(MaterialTheme.colorScheme.surfaceVariant)
-            .testTag(PRODUCT_CARD_IMAGE_LOADING_TEST_TAG),
-    )
-}
-
-@Composable
-private fun ProductImageErrorPlaceholder(modifier: Modifier = Modifier) {
-    Box(
-        modifier = modifier
-            .background(MaterialTheme.colorScheme.errorContainer)
-            .testTag(PRODUCT_CARD_IMAGE_ERROR_TEST_TAG),
-        contentAlignment = Alignment.Center,
-    ) {
-        Text(
-            text = stringResource(R.string.product_image_error_symbol),
-            color = MaterialTheme.colorScheme.onErrorContainer,
-            style = MaterialTheme.typography.headlineSmall,
-        )
     }
 }
 
