@@ -7,6 +7,11 @@ imágenes.
 
 Los productos se obtienen de la API pública [DummyJSON](https://dummyjson.com/).
 
+## Descargar APK
+
+[**Descargar app-debug.apk**](https://github.com/enavarro42/InterCommerceApp/releases/download/v1.0.0/app-debug.apk)
+(APK de debug, listo para instalar en un dispositivo Android con "Orígenes desconocidos" habilitado).
+
 ## Arquitectura
 
 El proyecto sigue **Clean Architecture** con tres capas, más **MVVM** dentro de la capa de
