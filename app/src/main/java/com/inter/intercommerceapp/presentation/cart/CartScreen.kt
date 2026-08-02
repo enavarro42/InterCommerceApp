@@ -25,12 +25,15 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material3.Button
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SwipeToDismissBox
+import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -166,6 +169,7 @@ private fun CartHeader(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CartItemRow(
     item: CartItem,
@@ -173,51 +177,81 @@ fun CartItemRow(
     onRemove: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Surface(
+    val dismissState = rememberSwipeToDismissBoxState(
+        confirmValueChange = { value ->
+            if (value == SwipeToDismissBoxValue.EndToStart) {
+                onRemove()
+            }
+            true
+        },
+    )
+
+    SwipeToDismissBox(
+        state = dismissState,
         modifier = modifier
             .fillMaxWidth()
             .testTag(cartItemRowTestTag(item.productId)),
-        tonalElevation = 1.dp,
-        shape = RoundedCornerShape(8.dp),
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(12.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            AsyncImage(
-                model = item.thumbnailUrl,
-                contentDescription = item.title,
+        enableDismissFromStartToEnd = false,
+        backgroundContent = {
+            CartItemDeleteBackground(
                 modifier = Modifier
-                    .size(56.dp)
-                    .aspectRatio(1f)
-                    .clip(RoundedCornerShape(8.dp)),
+                    .fillMaxSize()
+                    .testTag(cartItemRemoveTestTag(item.productId)),
             )
-            Spacer(modifier = Modifier.width(12.dp))
-            Column(modifier = Modifier.weight(1f)) {
-                Text(text = item.title, maxLines = 1, style = MaterialTheme.typography.titleSmall)
-                Text(
-                    text = stringResource(R.string.product_price_format, item.unitPrice),
-                    color = MaterialTheme.colorScheme.primary,
-                )
-            }
-            QuantityStepper(
-                quantity = item.quantity,
-                onQuantityChanged = onQuantityChanged,
-                productId = item.productId,
-            )
-            IconButton(
-                onClick = onRemove,
-                modifier = Modifier.testTag(cartItemRemoveTestTag(item.productId)),
+        },
+    ) {
+        Surface(
+            modifier = Modifier.fillMaxWidth(),
+            tonalElevation = 1.dp,
+            shape = RoundedCornerShape(8.dp),
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(12.dp),
+                verticalAlignment = Alignment.CenterVertically,
             ) {
-                Icon(
-                    imageVector = Icons.Default.Delete,
-                    contentDescription = stringResource(R.string.cart_action_remove),
-                    tint = MaterialTheme.colorScheme.error,
+                AsyncImage(
+                    model = item.thumbnailUrl,
+                    contentDescription = item.title,
+                    modifier = Modifier
+                        .size(56.dp)
+                        .aspectRatio(1f)
+                        .clip(RoundedCornerShape(8.dp)),
+                )
+                Spacer(modifier = Modifier.width(12.dp))
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(text = item.title, maxLines = 1, style = MaterialTheme.typography.titleSmall)
+                    Text(
+                        text = stringResource(R.string.product_price_format, item.unitPrice),
+                        color = MaterialTheme.colorScheme.primary,
+                    )
+                }
+                QuantityStepper(
+                    quantity = item.quantity,
+                    onQuantityChanged = onQuantityChanged,
+                    productId = item.productId,
                 )
             }
         }
+    }
+}
+
+@Composable
+private fun CartItemDeleteBackground(modifier: Modifier = Modifier) {
+    Box(
+        modifier = modifier
+            .clip(RoundedCornerShape(8.dp))
+            .background(MaterialTheme.colorScheme.error)
+            .padding(horizontal = 20.dp),
+        contentAlignment = Alignment.CenterEnd,
+    ) {
+        Icon(
+            imageVector = Icons.Default.Delete,
+            contentDescription = stringResource(R.string.cart_action_remove),
+            tint = MaterialTheme.colorScheme.onError,
+            modifier = Modifier.size(28.dp),
+        )
     }
 }
 
@@ -232,7 +266,7 @@ private fun QuantityStepper(
         modifier = modifier
             .clip(RoundedCornerShape(50))
             .background(MaterialTheme.colorScheme.surfaceVariant)
-            .padding(horizontal = 6.dp, vertical = 4.dp),
+            .padding(horizontal = 8.dp, vertical = 6.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         QuantityStepButton(
@@ -243,9 +277,10 @@ private fun QuantityStepper(
         Text(
             text = quantity.toString(),
             modifier = Modifier
-                .width(24.dp)
+                .width(28.dp)
                 .testTag(cartItemQuantityTestTag(productId)),
             textAlign = TextAlign.Center,
+            style = MaterialTheme.typography.bodyLarge,
         )
         QuantityStepButton(
             icon = Icons.Default.Add,
@@ -267,7 +302,7 @@ private fun QuantityStepButton(
 ) {
     Box(
         modifier = modifier
-            .size(24.dp)
+            .size(36.dp)
             .clip(CircleShape)
             .background(containerColor)
             .clickable(onClick = onClick),
@@ -277,7 +312,7 @@ private fun QuantityStepButton(
             imageVector = icon,
             contentDescription = null,
             tint = contentColor,
-            modifier = Modifier.size(14.dp),
+            modifier = Modifier.size(20.dp),
         )
     }
 }
@@ -295,10 +330,11 @@ fun CartTotalsSummary(totals: CartTotals, modifier: Modifier = Modifier) {
         Text(
             text = stringResource(R.string.cart_total_label),
             style = MaterialTheme.typography.bodyLarge,
+            fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
         Text(
-            text = stringResource(R.string.product_price_format, totals.total),
+            text = stringResource(R.string.cart_total_amount_format, totals.total),
             style = MaterialTheme.typography.titleLarge,
             fontWeight = FontWeight.Bold,
         )
