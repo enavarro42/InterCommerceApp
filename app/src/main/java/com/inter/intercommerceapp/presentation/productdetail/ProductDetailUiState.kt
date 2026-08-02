@@ -7,4 +7,5 @@ data class ProductDetailUiState(
     val isLoading: Boolean = false,
     val isFromCache: Boolean = false,
     val errorMessage: String? = null,
+    val cartItemCount: Int = 0,
 )

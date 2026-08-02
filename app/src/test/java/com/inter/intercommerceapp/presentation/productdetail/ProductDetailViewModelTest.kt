@@ -1,17 +1,20 @@
 package com.inter.intercommerceapp.presentation.productdetail
 
 import androidx.lifecycle.SavedStateHandle
+import com.inter.intercommerceapp.domain.model.CartItem
 import com.inter.intercommerceapp.domain.model.Product
 import com.inter.intercommerceapp.domain.model.ProductError
 import com.inter.intercommerceapp.domain.model.ProductResult
 import com.inter.intercommerceapp.domain.usecase.AddToCartUseCase
 import com.inter.intercommerceapp.domain.usecase.GetProductByIdUseCase
+import com.inter.intercommerceapp.domain.usecase.ObserveCartUseCase
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.toList
@@ -35,11 +38,13 @@ class ProductDetailViewModelTest {
     private val testDispatcher = StandardTestDispatcher()
     private val getProductByIdUseCase = mockk<GetProductByIdUseCase>()
     private val addToCartUseCase = mockk<AddToCartUseCase>()
+    private val observeCartUseCase = mockk<ObserveCartUseCase>()
 
     @Before
     fun setUp() {
         Dispatchers.setMain(testDispatcher)
         coEvery { addToCartUseCase(any(), any()) } returns Unit
+        every { observeCartUseCase() } returns flowOf(emptyList())
     }
 
     @After
@@ -61,10 +66,20 @@ class ProductDetailViewModelTest {
         images = emptyList(),
     )
 
+    private fun cartItem(productId: Int, quantity: Int) = CartItem(
+        productId = productId,
+        title = "Product $productId",
+        thumbnailUrl = "thumb",
+        unitPrice = 10.0,
+        discountPercentage = 0.0,
+        quantity = quantity,
+    )
+
     private fun createViewModel(productId: Int = 1) = ProductDetailViewModel(
         savedStateHandle = SavedStateHandle(mapOf("productId" to productId)),
         getProductByIdUseCase = getProductByIdUseCase,
         addToCartUseCase = addToCartUseCase,
+        observeCartUseCase = observeCartUseCase,
     )
 
     @Test
@@ -176,5 +191,34 @@ class ProductDetailViewModelTest {
         advanceUntilIdle()
 
         coVerify(exactly = 0) { addToCartUseCase(any(), any()) }
+    }
+
+    @Test
+    fun `cartItemCount is zero when the cart is empty`() = runTest(testDispatcher) {
+        every { getProductByIdUseCase(1) } returns
+            flowOf(Result.success(ProductResult(product(1), isFromCache = false)))
+        every { observeCartUseCase() } returns flowOf(emptyList())
+
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+
+        assertEquals(0, viewModel.uiState.value.cartItemCount)
+    }
+
+    @Test
+    fun `cartItemCount reflects the sum of quantities and updates as the cart changes`() = runTest(testDispatcher) {
+        every { getProductByIdUseCase(1) } returns
+            flowOf(Result.success(ProductResult(product(1), isFromCache = false)))
+        val cartFlow = MutableStateFlow<List<CartItem>>(emptyList())
+        every { observeCartUseCase() } returns cartFlow
+
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+        assertEquals(0, viewModel.uiState.value.cartItemCount)
+
+        cartFlow.value = listOf(cartItem(1, quantity = 2), cartItem(2, quantity = 3))
+        advanceUntilIdle()
+
+        assertEquals(5, viewModel.uiState.value.cartItemCount)
     }
 }

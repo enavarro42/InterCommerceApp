@@ -3,17 +3,18 @@
 
     <string name="catalog_search_placeholder">Buscar productos</string>
     <string name="catalog_offline_banner_message">Sin conexión, mostrando datos guardados</string>
-    <string name="catalog_cart_content_description">Carrito de compras</string>
+    <string name="cart_icon_content_description">Carrito de compras</string>
     <string name="action_retry">Reintentar</string>
 
     <string name="product_price_format">$%s</string>
     <string name="product_image_error_symbol">!</string>
 
     <string name="action_back">Volver</string>
-    <string name="product_detail_rating_format">★ %s</string>
-    <string name="product_detail_stock_format">Stock: %s</string>
-    <string name="product_detail_brand_format">Marca: %s</string>
-    <string name="product_detail_category_format">Categoría: %s</string>
+    <string name="product_detail_stock_available_format">En stock · %s disponibles</string>
+    <string name="product_detail_out_of_stock">Agotado</string>
+    <string name="product_detail_brand_label">Marca</string>
+    <string name="product_detail_category_label">Categoría</string>
+    <string name="product_detail_description_label">Descripción</string>
     <string name="product_detail_add_to_cart">Agregar al carrito</string>
     <string name="product_detail_added_to_cart_message">Producto agregado al carrito</string>
 
@@ -22,5 +23,8 @@
     <string name="cart_subtotal_format">Subtotal: $%s</string>
     <string name="cart_discount_format">Descuento: -$%s</string>
     <string name="cart_tax_format">Impuestos: $%s</string>
-    <string name="cart_total_format">Total: $%s</string>
+    <string name="cart_total_label">Total</string>
+    <string name="cart_screen_title">Mi carrito de compras</string>
+    <string name="cart_total_items_format">Total de artículos: %d</string>
+    <string name="cart_order_action">Ordenar</string>
 </resources>

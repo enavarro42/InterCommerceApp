@@ -1,6 +1,5 @@
 package com.inter.intercommerceapp.presentation.catalog
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -19,17 +18,12 @@ import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.ShoppingCart
-import androidx.compose.material3.Badge
-import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -55,6 +49,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.inter.intercommerceapp.R
 import com.inter.intercommerceapp.domain.model.Product
+import com.inter.intercommerceapp.presentation.components.CartIconButton
 import com.inter.intercommerceapp.presentation.components.ProductCard
 import kotlinx.coroutines.flow.map
 
@@ -66,8 +61,6 @@ const val CATALOG_ERROR_TEST_TAG = "catalog_error"
 const val CATALOG_RETRY_BUTTON_TEST_TAG = "catalog_retry_button"
 const val CATALOG_SEARCH_FIELD_TEST_TAG = "catalog_search_field"
 const val CATALOG_OFFLINE_RETRY_BUTTON_TEST_TAG = "catalog_offline_retry_button"
-const val CATALOG_CART_BUTTON_TEST_TAG = "catalog_cart_button"
-const val CATALOG_CART_BADGE_TEST_TAG = "catalog_cart_badge"
 
 @Composable
 fun CatalogRoute(
@@ -182,29 +175,7 @@ private fun CatalogHeader(
             style = MaterialTheme.typography.headlineSmall,
             color = MaterialTheme.colorScheme.onBackground,
         )
-        BadgedBox(
-            badge = {
-                if (cartItemCount > 0) {
-                    Badge(modifier = Modifier.testTag(CATALOG_CART_BADGE_TEST_TAG)) {
-                        Text(text = cartItemCount.toString())
-                    }
-                }
-            },
-        ) {
-            IconButton(
-                onClick = onCartClick,
-                modifier = Modifier
-                    .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.secondaryContainer)
-                    .testTag(CATALOG_CART_BUTTON_TEST_TAG),
-            ) {
-                Icon(
-                    imageVector = Icons.Default.ShoppingCart,
-                    contentDescription = stringResource(R.string.catalog_cart_content_description),
-                    tint = MaterialTheme.colorScheme.onSecondaryContainer,
-                )
-            }
-        }
+        CartIconButton(cartItemCount = cartItemCount, onClick = onCartClick)
     }
 }
 

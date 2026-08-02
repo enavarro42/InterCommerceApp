@@ -7,6 +7,7 @@ import com.inter.intercommerceapp.domain.model.ProductError
 import com.inter.intercommerceapp.domain.model.ProductResult
 import com.inter.intercommerceapp.domain.usecase.AddToCartUseCase
 import com.inter.intercommerceapp.domain.usecase.GetProductByIdUseCase
+import com.inter.intercommerceapp.domain.usecase.ObserveCartUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.channels.Channel
@@ -24,6 +25,7 @@ class ProductDetailViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val getProductByIdUseCase: GetProductByIdUseCase,
     private val addToCartUseCase: AddToCartUseCase,
+    private val observeCartUseCase: ObserveCartUseCase,
 ) : ViewModel() {
 
     // ProductDetailDestination's serialized fields are populated into the SavedStateHandle as flat
@@ -42,6 +44,12 @@ class ProductDetailViewModel @Inject constructor(
 
     init {
         load()
+        viewModelScope.launch {
+            observeCartUseCase().collect { items ->
+                val itemCount = items.sumOf { it.quantity }
+                _uiState.update { it.copy(cartItemCount = itemCount) }
+            }
+        }
     }
 
     fun retry() = load()

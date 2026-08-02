@@ -22,10 +22,17 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ShoppingCart
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Button
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
@@ -46,12 +53,17 @@ import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import com.inter.intercommerceapp.R
 import com.inter.intercommerceapp.domain.model.Product
+import com.inter.intercommerceapp.presentation.components.BackIconButton
+import com.inter.intercommerceapp.presentation.components.CartIconButton
+import com.inter.intercommerceapp.ui.theme.BrandRatingStar
+import com.inter.intercommerceapp.ui.theme.BrandSuccess
 import java.io.File
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
@@ -62,7 +74,6 @@ const val PRODUCT_DETAIL_RETRY_BUTTON_TEST_TAG = "product_detail_retry_button"
 const val PRODUCT_DETAIL_OFFLINE_BANNER_TEST_TAG = "product_detail_offline_banner"
 const val PRODUCT_DETAIL_OFFLINE_RETRY_BUTTON_TEST_TAG = "product_detail_offline_retry_button"
 const val PRODUCT_DETAIL_CONTENT_TEST_TAG = "product_detail_content"
-const val PRODUCT_DETAIL_BACK_BUTTON_TEST_TAG = "product_detail_back_button"
 const val PRODUCT_DETAIL_ADD_TO_CART_BUTTON_TEST_TAG = "product_detail_add_to_cart_button"
 
 private const val ADD_TO_CART_VIBRATION_DURATION_MS = 50L
@@ -72,6 +83,7 @@ fun ProductDetailRoute(
     onBack: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: ProductDetailViewModel = hiltViewModel(),
+    onCartClick: () -> Unit = {},
 ) {
     val uiState by viewModel.uiState.collectAsState()
     ProductDetailScreen(
@@ -80,6 +92,7 @@ fun ProductDetailRoute(
         onBack = onBack,
         onAddToCartClicked = viewModel::onAddToCartClicked,
         addedToCartEvent = viewModel.addedToCartEvent,
+        onCartClick = onCartClick,
         modifier = modifier,
     )
 }
@@ -91,6 +104,7 @@ fun ProductDetailScreen(
     onBack: () -> Unit,
     onAddToCartClicked: () -> Unit = {},
     addedToCartEvent: Flow<Unit> = emptyFlow(),
+    onCartClick: () -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
@@ -106,18 +120,13 @@ fun ProductDetailScreen(
 
     Scaffold(
         modifier = modifier,
-        containerColor = MaterialTheme.colorScheme.surfaceVariant,
+        containerColor = MaterialTheme.colorScheme.background,
         topBar = {
-            Surface(tonalElevation = 2.dp) {
-                TextButton(
-                    onClick = onBack,
-                    modifier = Modifier
-                        .padding(8.dp)
-                        .testTag(PRODUCT_DETAIL_BACK_BUTTON_TEST_TAG),
-                ) {
-                    Text(stringResource(R.string.action_back))
-                }
-            }
+            ProductDetailHeader(
+                cartItemCount = uiState.cartItemCount,
+                onBack = onBack,
+                onCartClick = onCartClick,
+            )
         },
         snackbarHost = { SnackbarHost(snackbarHostState) },
     ) { innerPadding ->
@@ -149,14 +158,41 @@ fun ProductDetailScreen(
             Button(
                 onClick = onAddToCartClicked,
                 enabled = uiState.product != null,
+                shape = RoundedCornerShape(50),
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(16.dp)
                     .testTag(PRODUCT_DETAIL_ADD_TO_CART_BUTTON_TEST_TAG),
             ) {
+                Icon(
+                    imageVector = Icons.Default.ShoppingCart,
+                    contentDescription = null,
+                    modifier = Modifier.size(20.dp),
+                )
+                Spacer(modifier = Modifier.width(8.dp))
                 Text(stringResource(R.string.product_detail_add_to_cart))
             }
         }
+    }
+}
+
+@Composable
+private fun ProductDetailHeader(
+    cartItemCount: Int,
+    onBack: () -> Unit,
+    onCartClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .statusBarsPadding()
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        BackIconButton(onClick = onBack)
+        CartIconButton(cartItemCount = cartItemCount, onClick = onCartClick)
     }
 }
 
@@ -246,37 +282,123 @@ private fun ProductDetailContent(product: Product, modifier: Modifier = Modifier
     Column(
         modifier = modifier
             .verticalScroll(rememberScrollState())
-            .padding(16.dp)
             .testTag(PRODUCT_DETAIL_CONTENT_TEST_TAG),
     ) {
-        AsyncImage(
-            model = product.localThumbnailPath?.let(::File) ?: product.thumbnail,
-            contentDescription = product.title,
+        Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .aspectRatio(1f)
-                .clip(RoundedCornerShape(12.dp)),
+                .background(MaterialTheme.colorScheme.surface)
+                .padding(32.dp),
+            contentAlignment = Alignment.Center,
+        ) {
+            AsyncImage(
+                model = product.localThumbnailPath?.let(::File) ?: product.thumbnail,
+                contentDescription = product.title,
+                modifier = Modifier
+                    .fillMaxWidth(0.55f)
+                    .aspectRatio(1f),
+            )
+        }
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
+                .background(MaterialTheme.colorScheme.background)
+                .padding(20.dp),
+        ) {
+            Text(
+                text = product.title,
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold,
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = stringResource(R.string.product_price_format, product.price),
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.Bold,
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            ProductAvailabilityRow(rating = product.rating, stock = product.stock)
+            Spacer(modifier = Modifier.height(16.dp))
+            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                product.brand?.let { brand ->
+                    ProductInfoChip(
+                        label = stringResource(R.string.product_detail_brand_label),
+                        value = brand,
+                        modifier = Modifier.weight(1f),
+                    )
+                }
+                ProductInfoChip(
+                    label = stringResource(R.string.product_detail_category_label),
+                    value = product.category,
+                    modifier = Modifier.weight(1f),
+                )
+            }
+            Spacer(modifier = Modifier.height(20.dp))
+            Text(
+                text = stringResource(R.string.product_detail_description_label),
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(text = product.description, style = MaterialTheme.typography.bodyMedium)
+        }
+    }
+}
+
+@Composable
+private fun ProductAvailabilityRow(rating: Double, stock: Int, modifier: Modifier = Modifier) {
+    Row(modifier = modifier, verticalAlignment = Alignment.CenterVertically) {
+        Icon(
+            imageVector = Icons.Default.Star,
+            contentDescription = null,
+            tint = BrandRatingStar,
+            modifier = Modifier.size(16.dp),
         )
-        Spacer(modifier = Modifier.height(16.dp))
-        Text(text = product.title, style = MaterialTheme.typography.headlineSmall)
-        Spacer(modifier = Modifier.height(4.dp))
+        Spacer(modifier = Modifier.width(4.dp))
+        Text(text = rating.toString(), style = MaterialTheme.typography.bodyMedium)
+        Spacer(modifier = Modifier.width(8.dp))
         Text(
-            text = stringResource(R.string.product_price_format, product.price),
-            style = MaterialTheme.typography.titleLarge,
-            color = MaterialTheme.colorScheme.primary,
+            text = "•",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
-        Spacer(modifier = Modifier.height(8.dp))
-        Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-            Text(stringResource(R.string.product_detail_rating_format, product.rating))
-            Text(stringResource(R.string.product_detail_stock_format, product.stock))
+        Spacer(modifier = Modifier.width(8.dp))
+        if (stock > 0) {
+            Text(
+                text = stringResource(R.string.product_detail_stock_available_format, stock),
+                style = MaterialTheme.typography.bodyMedium,
+                color = BrandSuccess,
+            )
+        } else {
+            Text(
+                text = stringResource(R.string.product_detail_out_of_stock),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.error,
+            )
         }
-        Spacer(modifier = Modifier.height(4.dp))
-        product.brand?.let { brand ->
-            Text(stringResource(R.string.product_detail_brand_format, brand))
-        }
-        Text(stringResource(R.string.product_detail_category_format, product.category))
-        Spacer(modifier = Modifier.height(16.dp))
-        Text(text = product.description, style = MaterialTheme.typography.bodyMedium)
+    }
+}
+
+@Composable
+private fun ProductInfoChip(label: String, value: String, modifier: Modifier = Modifier) {
+    Column(
+        modifier = modifier
+            .clip(RoundedCornerShape(12.dp))
+            .background(MaterialTheme.colorScheme.surfaceVariant)
+            .padding(12.dp),
+    ) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        Spacer(modifier = Modifier.height(2.dp))
+        Text(
+            text = value,
+            style = MaterialTheme.typography.bodyMedium,
+            fontWeight = FontWeight.SemiBold,
+        )
     }
 }
 

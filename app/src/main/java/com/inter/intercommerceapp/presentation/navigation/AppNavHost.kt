@@ -31,10 +31,13 @@ fun AppNavHost() {
             )
         }
         composable<ProductDetailDestination> {
-            ProductDetailRoute(onBack = { navController.navigateUp() })
+            ProductDetailRoute(
+                onBack = { navController.navigateUp() },
+                onCartClick = { navController.navigate(CartDestination) },
+            )
         }
         composable<CartDestination> {
-            CartRoute()
+            CartRoute(onBack = { navController.navigateUp() })
         }
     }
 }
