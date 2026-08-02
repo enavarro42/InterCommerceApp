@@ -2,9 +2,12 @@ package com.inter.intercommerceapp.presentation.productdetail
 
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import com.inter.intercommerceapp.domain.model.Product
 import com.inter.intercommerceapp.ui.theme.InterCommerceAppTheme
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.receiveAsFlow
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
@@ -28,13 +31,20 @@ class ProductDetailScreenTest {
         images = emptyList(),
     )
 
-    private fun setContent(uiState: ProductDetailUiState, onRetry: () -> Unit = {}) {
+    private fun setContent(
+        uiState: ProductDetailUiState,
+        onRetry: () -> Unit = {},
+        onAddToCartClicked: () -> Unit = {},
+        addedToCartEvent: Channel<Unit> = Channel(),
+    ) {
         composeTestRule.setContent {
             InterCommerceAppTheme {
                 ProductDetailScreen(
                     uiState = uiState,
                     onRetry = onRetry,
                     onBack = {},
+                    onAddToCartClicked = onAddToCartClicked,
+                    addedToCartEvent = addedToCartEvent.receiveAsFlow(),
                 )
             }
         }
@@ -80,5 +90,33 @@ class ProductDetailScreenTest {
         setContent(ProductDetailUiState(product = product, isFromCache = false))
 
         composeTestRule.onNodeWithTag(PRODUCT_DETAIL_OFFLINE_BANNER_TEST_TAG).assertDoesNotExist()
+    }
+
+    @Test
+    fun tappingAddToCartButtonInvokesTheClickHandler() {
+        var clicked = false
+        setContent(
+            ProductDetailUiState(product = product),
+            onAddToCartClicked = { clicked = true },
+        )
+
+        composeTestRule.onNodeWithTag(PRODUCT_DETAIL_ADD_TO_CART_BUTTON_TEST_TAG).performClick()
+
+        assertTrue(clicked)
+    }
+
+    @Test
+    fun confirmationSnackbarAppearsAfterAddedToCartEvent() {
+        val addedToCartEvent = Channel<Unit>()
+        setContent(
+            ProductDetailUiState(product = product),
+            addedToCartEvent = addedToCartEvent,
+        )
+
+        composeTestRule.runOnIdle {
+            addedToCartEvent.trySend(Unit)
+        }
+
+        composeTestRule.onNodeWithText("Producto agregado al carrito").assertExists()
     }
 }

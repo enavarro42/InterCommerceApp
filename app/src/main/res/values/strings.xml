@@ -13,6 +13,8 @@
     <string name="product_detail_stock_format">Stock: %s</string>
     <string name="product_detail_brand_format">Marca: %s</string>
     <string name="product_detail_category_format">Categoría: %s</string>
+    <string name="product_detail_add_to_cart">Agregar al carrito</string>
+    <string name="product_detail_added_to_cart_message">Producto agregado al carrito</string>
 
     <string name="cart_empty_message">Tu carrito está vacío</string>
     <string name="cart_action_remove">Eliminar</string>

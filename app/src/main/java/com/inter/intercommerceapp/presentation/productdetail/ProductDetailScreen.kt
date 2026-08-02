@@ -1,5 +1,10 @@
 package com.inter.intercommerceapp.presentation.productdetail
 
+import android.content.Context
+import android.os.Build
+import android.os.VibrationEffect
+import android.os.Vibrator
+import android.os.VibratorManager
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
@@ -23,17 +28,22 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.lerp
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
@@ -43,6 +53,8 @@ import coil.compose.AsyncImage
 import com.inter.intercommerceapp.R
 import com.inter.intercommerceapp.domain.model.Product
 import java.io.File
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.emptyFlow
 
 const val PRODUCT_DETAIL_SHIMMER_TEST_TAG = "product_detail_shimmer"
 const val PRODUCT_DETAIL_ERROR_TEST_TAG = "product_detail_error"
@@ -51,6 +63,9 @@ const val PRODUCT_DETAIL_OFFLINE_BANNER_TEST_TAG = "product_detail_offline_banne
 const val PRODUCT_DETAIL_OFFLINE_RETRY_BUTTON_TEST_TAG = "product_detail_offline_retry_button"
 const val PRODUCT_DETAIL_CONTENT_TEST_TAG = "product_detail_content"
 const val PRODUCT_DETAIL_BACK_BUTTON_TEST_TAG = "product_detail_back_button"
+const val PRODUCT_DETAIL_ADD_TO_CART_BUTTON_TEST_TAG = "product_detail_add_to_cart_button"
+
+private const val ADD_TO_CART_VIBRATION_DURATION_MS = 50L
 
 @Composable
 fun ProductDetailRoute(
@@ -63,6 +78,8 @@ fun ProductDetailRoute(
         uiState = uiState,
         onRetry = viewModel::retry,
         onBack = onBack,
+        onAddToCartClicked = viewModel::onAddToCartClicked,
+        addedToCartEvent = viewModel.addedToCartEvent,
         modifier = modifier,
     )
 }
@@ -72,8 +89,21 @@ fun ProductDetailScreen(
     uiState: ProductDetailUiState,
     onRetry: () -> Unit,
     onBack: () -> Unit,
+    onAddToCartClicked: () -> Unit = {},
+    addedToCartEvent: Flow<Unit> = emptyFlow(),
     modifier: Modifier = Modifier,
 ) {
+    val context = LocalContext.current
+    val snackbarHostState = remember { SnackbarHostState() }
+    val addedToCartMessage = stringResource(R.string.product_detail_added_to_cart_message)
+
+    LaunchedEffect(addedToCartEvent) {
+        addedToCartEvent.collect {
+            vibrateOnAddToCart(context)
+            snackbarHostState.showSnackbar(addedToCartMessage)
+        }
+    }
+
     Scaffold(
         modifier = modifier,
         containerColor = MaterialTheme.colorScheme.surfaceVariant,
@@ -89,6 +119,7 @@ fun ProductDetailScreen(
                 }
             }
         },
+        snackbarHost = { SnackbarHost(snackbarHostState) },
     ) { innerPadding ->
         Column(
             modifier = Modifier
@@ -98,21 +129,58 @@ fun ProductDetailScreen(
             if (uiState.isFromCache) {
                 ProductDetailOfflineBanner(onRetry = onRetry)
             }
-            when {
-                uiState.product != null -> {
-                    ProductDetailContent(product = uiState.product, modifier = Modifier.fillMaxSize())
-                }
-                uiState.errorMessage != null -> {
-                    ProductDetailErrorState(
-                        message = uiState.errorMessage,
-                        onRetry = onRetry,
-                        modifier = Modifier.fillMaxSize(),
-                    )
-                }
-                else -> {
-                    ProductDetailShimmerPlaceholder(modifier = Modifier.fillMaxSize())
+            Box(modifier = Modifier.weight(1f)) {
+                when {
+                    uiState.product != null -> {
+                        ProductDetailContent(product = uiState.product, modifier = Modifier.fillMaxSize())
+                    }
+                    uiState.errorMessage != null -> {
+                        ProductDetailErrorState(
+                            message = uiState.errorMessage,
+                            onRetry = onRetry,
+                            modifier = Modifier.fillMaxSize(),
+                        )
+                    }
+                    else -> {
+                        ProductDetailShimmerPlaceholder(modifier = Modifier.fillMaxSize())
+                    }
                 }
             }
+            Button(
+                onClick = onAddToCartClicked,
+                enabled = uiState.product != null,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp)
+                    .testTag(PRODUCT_DETAIL_ADD_TO_CART_BUTTON_TEST_TAG),
+            ) {
+                Text(stringResource(R.string.product_detail_add_to_cart))
+            }
+        }
+    }
+}
+
+private fun vibrateOnAddToCart(context: Context) {
+    val effect = VibrationEffect.createOneShot(
+        ADD_TO_CART_VIBRATION_DURATION_MS,
+        VibrationEffect.DEFAULT_AMPLITUDE,
+    )
+    when {
+        Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
+            val vibratorManager =
+                context.getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as VibratorManager
+            vibratorManager.defaultVibrator.vibrate(effect)
+        }
+        Build.VERSION.SDK_INT >= Build.VERSION_CODES.O -> {
+            @Suppress("DEPRECATION")
+            val vibrator = context.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
+            vibrator.vibrate(effect)
+        }
+        else -> {
+            @Suppress("DEPRECATION")
+            val vibrator = context.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
+            @Suppress("DEPRECATION")
+            vibrator.vibrate(ADD_TO_CART_VIBRATION_DURATION_MS)
         }
     }
 }

@@ -5,13 +5,17 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.inter.intercommerceapp.domain.model.ProductError
 import com.inter.intercommerceapp.domain.model.ProductResult
+import com.inter.intercommerceapp.domain.usecase.AddToCartUseCase
 import com.inter.intercommerceapp.domain.usecase.GetProductByIdUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
@@ -19,6 +23,7 @@ import kotlinx.coroutines.launch
 class ProductDetailViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val getProductByIdUseCase: GetProductByIdUseCase,
+    private val addToCartUseCase: AddToCartUseCase,
 ) : ViewModel() {
 
     // ProductDetailDestination's serialized fields are populated into the SavedStateHandle as flat
@@ -30,11 +35,24 @@ class ProductDetailViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(ProductDetailUiState())
     val uiState: StateFlow<ProductDetailUiState> = _uiState.asStateFlow()
 
+    // A Channel (not part of ProductDetailUiState) so "added to cart" fires exactly once per tap
+    // and never replays on recomposition or configuration change.
+    private val _addedToCartEvent = Channel<Unit>(Channel.BUFFERED)
+    val addedToCartEvent: Flow<Unit> = _addedToCartEvent.receiveAsFlow()
+
     init {
         load()
     }
 
     fun retry() = load()
+
+    fun onAddToCartClicked() {
+        val product = _uiState.value.product ?: return
+        viewModelScope.launch {
+            addToCartUseCase(product, quantity = 1)
+            _addedToCartEvent.send(Unit)
+        }
+    }
 
     private fun load() {
         _uiState.update { it.copy(isLoading = true, errorMessage = null) }
