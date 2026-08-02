@@ -10,4 +10,5 @@ data class CatalogUiState(
     val errorMessage: String? = null,
     val searchQuery: String = "",
     val endReached: Boolean = false,
+    val cartItemCount: Int = 0,
 )

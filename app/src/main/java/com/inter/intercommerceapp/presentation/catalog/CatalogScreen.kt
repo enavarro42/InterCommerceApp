@@ -1,5 +1,6 @@
 package com.inter.intercommerceapp.presentation.catalog
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -18,14 +19,24 @@ import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.ShoppingCart
+import androidx.compose.material3.Badge
+import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -35,6 +46,8 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
@@ -53,12 +66,15 @@ const val CATALOG_ERROR_TEST_TAG = "catalog_error"
 const val CATALOG_RETRY_BUTTON_TEST_TAG = "catalog_retry_button"
 const val CATALOG_SEARCH_FIELD_TEST_TAG = "catalog_search_field"
 const val CATALOG_OFFLINE_RETRY_BUTTON_TEST_TAG = "catalog_offline_retry_button"
+const val CATALOG_CART_BUTTON_TEST_TAG = "catalog_cart_button"
+const val CATALOG_CART_BADGE_TEST_TAG = "catalog_cart_badge"
 
 @Composable
 fun CatalogRoute(
     modifier: Modifier = Modifier,
     viewModel: CatalogViewModel = hiltViewModel(),
     onProductClick: (Product) -> Unit = {},
+    onCartClick: () -> Unit = {},
 ) {
     val uiState by viewModel.uiState.collectAsState()
     CatalogScreen(
@@ -67,6 +83,7 @@ fun CatalogRoute(
         onLoadNextPage = viewModel::loadNextPage,
         onRetry = viewModel::retry,
         onProductClick = onProductClick,
+        onCartClick = onCartClick,
         modifier = modifier,
     )
 }
@@ -79,6 +96,7 @@ fun CatalogScreen(
     onRetry: () -> Unit,
     modifier: Modifier = Modifier,
     onProductClick: (Product) -> Unit = {},
+    onCartClick: () -> Unit = {},
 ) {
     val gridState = rememberLazyGridState()
     val latestUiState by rememberUpdatedState(uiState)
@@ -99,9 +117,12 @@ fun CatalogScreen(
 
     Scaffold(
         modifier = modifier,
-        containerColor = MaterialTheme.colorScheme.surfaceVariant,
+        containerColor = MaterialTheme.colorScheme.background,
         topBar = {
-            CatalogSearchBar(query = uiState.searchQuery, onQueryChanged = onSearchQueryChanged)
+            Column(modifier = Modifier.statusBarsPadding()) {
+                CatalogHeader(cartItemCount = uiState.cartItemCount, onCartClick = onCartClick)
+                CatalogSearchBar(query = uiState.searchQuery, onQueryChanged = onSearchQueryChanged)
+            }
         },
     ) { innerPadding ->
         Column(
@@ -144,24 +165,79 @@ fun CatalogScreen(
 }
 
 @Composable
+private fun CatalogHeader(
+    cartItemCount: Int,
+    onCartClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(
+            text = stringResource(R.string.app_name),
+            style = MaterialTheme.typography.headlineSmall,
+            color = MaterialTheme.colorScheme.onBackground,
+        )
+        BadgedBox(
+            badge = {
+                if (cartItemCount > 0) {
+                    Badge(modifier = Modifier.testTag(CATALOG_CART_BADGE_TEST_TAG)) {
+                        Text(text = cartItemCount.toString())
+                    }
+                }
+            },
+        ) {
+            IconButton(
+                onClick = onCartClick,
+                modifier = Modifier
+                    .clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.secondaryContainer)
+                    .testTag(CATALOG_CART_BUTTON_TEST_TAG),
+            ) {
+                Icon(
+                    imageVector = Icons.Default.ShoppingCart,
+                    contentDescription = stringResource(R.string.catalog_cart_content_description),
+                    tint = MaterialTheme.colorScheme.onSecondaryContainer,
+                )
+            }
+        }
+    }
+}
+
+@Composable
 private fun CatalogSearchBar(
     query: String,
     onQueryChanged: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Surface(modifier = modifier.fillMaxWidth(), tonalElevation = 2.dp) {
-        OutlinedTextField(
-            value = query,
-            onValueChange = onQueryChanged,
-            modifier = Modifier
-                .fillMaxWidth()
-                .statusBarsPadding()
-                .padding(12.dp)
-                .testTag(CATALOG_SEARCH_FIELD_TEST_TAG),
-            placeholder = { Text(stringResource(R.string.catalog_search_placeholder)) },
-            singleLine = true,
-        )
-    }
+    TextField(
+        value = query,
+        onValueChange = onQueryChanged,
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp)
+            .padding(bottom = 12.dp)
+            .clip(RoundedCornerShape(50))
+            .testTag(CATALOG_SEARCH_FIELD_TEST_TAG),
+        placeholder = { Text(stringResource(R.string.catalog_search_placeholder)) },
+        leadingIcon = {
+            Icon(imageVector = Icons.Default.Search, contentDescription = null)
+        },
+        singleLine = true,
+        shape = RoundedCornerShape(50),
+        colors = TextFieldDefaults.colors(
+            focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+            unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+            disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+            focusedIndicatorColor = Color.Transparent,
+            unfocusedIndicatorColor = Color.Transparent,
+            disabledIndicatorColor = Color.Transparent,
+        ),
+    )
 }
 
 @Composable

@@ -9,6 +9,7 @@ import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 
 private val DarkColorScheme = darkColorScheme(
@@ -17,27 +18,32 @@ private val DarkColorScheme = darkColorScheme(
     tertiary = Pink80
 )
 
+// Fixed brand palette (navy on light lavender) rather than the default Material purple, so the
+// catalog redesign matches the mockup identically on every device instead of drifting with
+// Material You/dynamic color.
 private val LightColorScheme = lightColorScheme(
-    primary = Purple40,
-    secondary = PurpleGrey40,
-    tertiary = Pink40
-
-    /* Other default colors to override
-    background = Color(0xFFFFFBFE),
-    surface = Color(0xFFFFFBFE),
+    primary = BrandNavy,
     onPrimary = Color.White,
-    onSecondary = Color.White,
-    onTertiary = Color.White,
-    onBackground = Color(0xFF1C1B1F),
-    onSurface = Color(0xFF1C1B1F),
-    */
+    secondary = PurpleGrey40,
+    tertiary = Pink40,
+    background = BrandLavenderBackground,
+    onBackground = BrandNavy,
+    surface = Color.White,
+    onSurface = BrandNavy,
+    surfaceVariant = BrandSurfaceMuted,
+    onSurfaceVariant = BrandNavy,
+    secondaryContainer = BrandCartBadgeLavender,
+    onSecondaryContainer = BrandNavy,
+    error = BrandError,
+    onError = Color.White,
 )
 
 @Composable
 fun InterCommerceAppTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
-    // Dynamic color is available on Android 12+
-    dynamicColor: Boolean = true,
+    // Dynamic color is disabled by default so the app's branding matches design mockups exactly,
+    // rather than following the device wallpaper (Material You, Android 12+).
+    dynamicColor: Boolean = false,
     content: @Composable () -> Unit
 ) {
     val colorScheme = when {

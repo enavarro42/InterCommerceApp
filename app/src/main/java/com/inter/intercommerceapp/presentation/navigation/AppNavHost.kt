@@ -27,6 +27,7 @@ fun AppNavHost() {
                 onProductClick = { product ->
                     navController.navigate(ProductDetailDestination(product.id))
                 },
+                onCartClick = { navController.navigate(CartDestination) },
             )
         }
         composable<ProductDetailDestination> {

@@ -6,6 +6,7 @@ import com.inter.intercommerceapp.domain.model.Product
 import com.inter.intercommerceapp.domain.model.ProductError
 import com.inter.intercommerceapp.domain.model.ProductsResult
 import com.inter.intercommerceapp.domain.usecase.GetProductsUseCase
+import com.inter.intercommerceapp.domain.usecase.ObserveCartUseCase
 import com.inter.intercommerceapp.domain.usecase.SearchProductsUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
@@ -28,6 +29,7 @@ private const val SEARCH_DEBOUNCE_MILLIS = 300L
 class CatalogViewModel @Inject constructor(
     private val getProductsUseCase: GetProductsUseCase,
     private val searchProductsUseCase: SearchProductsUseCase,
+    private val observeCartUseCase: ObserveCartUseCase,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(CatalogUiState())
@@ -47,6 +49,12 @@ class CatalogViewModel @Inject constructor(
     init {
         viewModelScope.launch {
             searchQueryChanges.debounce(SEARCH_DEBOUNCE_MILLIS).collectLatest(::executeSearch)
+        }
+        viewModelScope.launch {
+            observeCartUseCase().collect { items ->
+                val itemCount = items.sumOf { it.quantity }
+                _uiState.update { it.copy(cartItemCount = itemCount) }
+            }
         }
         loadFirstPage()
     }

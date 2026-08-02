@@ -3,6 +3,7 @@
 
     <string name="catalog_search_placeholder">Buscar productos</string>
     <string name="catalog_offline_banner_message">Sin conexión, mostrando datos guardados</string>
+    <string name="catalog_cart_content_description">Carrito de compras</string>
     <string name="action_retry">Reintentar</string>
 
     <string name="product_price_format">$%s</string>
