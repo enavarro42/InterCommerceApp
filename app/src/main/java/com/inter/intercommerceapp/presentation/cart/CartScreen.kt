@@ -326,24 +326,63 @@ private fun QuantityStepButton(
 
 @Composable
 fun CartTotalsSummary(totals: CartTotals, modifier: Modifier = Modifier) {
-    Row(
+    Column(
         modifier = modifier
             .fillMaxWidth()
             .testTag(CART_TOTALS_TEST_TAG)
             .padding(16.dp),
+    ) {
+        CartTotalsRow(
+            label = stringResource(R.string.cart_subtotal_label),
+            amount = stringResource(R.string.cart_subtotal_amount_format, totals.subtotal),
+        )
+        if (totals.discountAmount > 0.0) {
+            CartTotalsRow(
+                label = stringResource(R.string.cart_discount_label),
+                amount = stringResource(R.string.cart_discount_amount_format, totals.discountAmount),
+            )
+        }
+        CartTotalsRow(
+            label = stringResource(R.string.cart_tax_label),
+            amount = stringResource(R.string.cart_tax_amount_format, totals.taxAmount),
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                text = stringResource(R.string.cart_total_label),
+                style = MaterialTheme.typography.bodyLarge,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            Text(
+                text = stringResource(R.string.cart_total_amount_format, totals.total),
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold,
+            )
+        }
+    }
+}
+
+@Composable
+private fun CartTotalsRow(label: String, amount: String, modifier: Modifier = Modifier) {
+    Row(
+        modifier = modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(
-            text = stringResource(R.string.cart_total_label),
-            style = MaterialTheme.typography.bodyLarge,
-            fontWeight = FontWeight.Bold,
+            text = label,
+            style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
         Text(
-            text = stringResource(R.string.cart_total_amount_format, totals.total),
-            style = MaterialTheme.typography.titleLarge,
-            fontWeight = FontWeight.Bold,
+            text = amount,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
     }
 }

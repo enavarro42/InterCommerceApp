@@ -20,9 +20,12 @@
 
     <string name="cart_empty_message">Tu carrito está vacío</string>
     <string name="cart_action_remove">Eliminar</string>
-    <string name="cart_subtotal_format">Subtotal: $%s</string>
-    <string name="cart_discount_format">Descuento: -$%s</string>
-    <string name="cart_tax_format">Impuestos: $%s</string>
+    <string name="cart_subtotal_label">Subtotal</string>
+    <string name="cart_subtotal_amount_format">$%.2f</string>
+    <string name="cart_discount_label">Descuento</string>
+    <string name="cart_discount_amount_format">-$%.2f</string>
+    <string name="cart_tax_label">Impuestos</string>
+    <string name="cart_tax_amount_format">$%.2f</string>
     <string name="cart_total_label">Total</string>
     <string name="cart_total_amount_format">$%.2f</string>
     <string name="cart_screen_title">Mi carrito de compras</string>
