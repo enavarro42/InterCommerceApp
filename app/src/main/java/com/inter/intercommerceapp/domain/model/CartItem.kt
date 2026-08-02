@@ -7,4 +7,5 @@ data class CartItem(
     val unitPrice: Double,
     val discountPercentage: Double,
     val quantity: Int,
+    val localThumbnailPath: String? = null,
 )

@@ -3,6 +3,7 @@ package com.inter.intercommerceapp.presentation.cart
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.inter.intercommerceapp.domain.usecase.CalculateCartTotalsUseCase
+import com.inter.intercommerceapp.domain.usecase.ClearCartUseCase
 import com.inter.intercommerceapp.domain.usecase.ObserveCartUseCase
 import com.inter.intercommerceapp.domain.usecase.RemoveFromCartUseCase
 import com.inter.intercommerceapp.domain.usecase.UpdateCartQuantityUseCase
@@ -20,6 +21,7 @@ class CartViewModel @Inject constructor(
     private val calculateCartTotalsUseCase: CalculateCartTotalsUseCase,
     private val updateCartQuantityUseCase: UpdateCartQuantityUseCase,
     private val removeFromCartUseCase: RemoveFromCartUseCase,
+    private val clearCartUseCase: ClearCartUseCase,
 ) : ViewModel() {
 
     val uiState: StateFlow<CartUiState> = observeCartUseCase()
@@ -38,5 +40,9 @@ class CartViewModel @Inject constructor(
 
     fun onRemoveItem(productId: Int) {
         viewModelScope.launch { removeFromCartUseCase(productId) }
+    }
+
+    fun onOrderClicked() {
+        viewModelScope.launch { clearCartUseCase() }
     }
 }

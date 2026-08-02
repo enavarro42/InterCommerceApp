@@ -15,6 +15,7 @@ object CartMapper {
             discountPercentage = product.discountPercentage,
             quantity = quantity,
             addedAt = addedAt,
+            localThumbnailPath = product.localThumbnailPath,
         )
 
     fun toDomain(entity: CartItemEntity): CartItem = CartItem(
@@ -24,5 +25,6 @@ object CartMapper {
         unitPrice = entity.unitPrice,
         discountPercentage = entity.discountPercentage,
         quantity = entity.quantity,
+        localThumbnailPath = entity.localThumbnailPath,
     )
 }

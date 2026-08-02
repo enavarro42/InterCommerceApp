@@ -12,4 +12,5 @@ data class CartItemEntity(
     val discountPercentage: Double,
     val quantity: Int,
     val addedAt: Long,
+    val localThumbnailPath: String? = null,
 )

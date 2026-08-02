@@ -2,10 +2,12 @@ package com.inter.intercommerceapp.presentation.cart
 
 import com.inter.intercommerceapp.domain.model.CartItem
 import com.inter.intercommerceapp.domain.usecase.CalculateCartTotalsUseCase
+import com.inter.intercommerceapp.domain.usecase.ClearCartUseCase
 import com.inter.intercommerceapp.domain.usecase.ObserveCartUseCase
 import com.inter.intercommerceapp.domain.usecase.RemoveFromCartUseCase
 import com.inter.intercommerceapp.domain.usecase.UpdateCartQuantityUseCase
 import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
@@ -30,6 +32,7 @@ class CartViewModelTest {
     private val calculateCartTotalsUseCase = CalculateCartTotalsUseCase()
     private val updateCartQuantityUseCase = mockk<UpdateCartQuantityUseCase>()
     private val removeFromCartUseCase = mockk<RemoveFromCartUseCase>()
+    private val clearCartUseCase = mockk<ClearCartUseCase>()
 
     private val cartFlow = MutableStateFlow<List<CartItem>>(emptyList())
 
@@ -59,6 +62,7 @@ class CartViewModelTest {
         calculateCartTotalsUseCase,
         updateCartQuantityUseCase,
         removeFromCartUseCase,
+        clearCartUseCase,
     )
 
     @Test
@@ -144,5 +148,21 @@ class CartViewModelTest {
         advanceUntilIdle()
 
         assertTrue(viewModel.uiState.value.items.isEmpty())
+    }
+
+    @Test
+    fun `onOrderClicked clears the cart`() = runTest(testDispatcher) {
+        val item = cartItem(productId = 1, quantity = 1, unitPrice = 10.0)
+        cartFlow.value = listOf(item)
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+
+        coEvery { clearCartUseCase() } answers { cartFlow.value = emptyList() }
+
+        viewModel.onOrderClicked()
+        advanceUntilIdle()
+
+        coVerify(exactly = 1) { clearCartUseCase() }
+        assertTrue(viewModel.uiState.value.isEmpty)
     }
 }

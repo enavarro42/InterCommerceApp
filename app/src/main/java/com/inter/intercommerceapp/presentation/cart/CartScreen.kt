@@ -53,6 +53,7 @@ import com.inter.intercommerceapp.R
 import com.inter.intercommerceapp.domain.model.CartItem
 import com.inter.intercommerceapp.domain.model.CartTotals
 import com.inter.intercommerceapp.presentation.components.BackIconButton
+import java.io.File
 
 const val CART_LIST_TEST_TAG = "cart_list"
 const val CART_EMPTY_STATE_TEST_TAG = "cart_empty_state"
@@ -68,6 +69,7 @@ fun cartItemRemoveTestTag(productId: Int) = "cart_item_${productId}_remove"
 @Composable
 fun CartRoute(
     onBack: () -> Unit,
+    onOrderPlaced: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: CartViewModel = hiltViewModel(),
 ) {
@@ -77,6 +79,10 @@ fun CartRoute(
         onQuantityChanged = viewModel::onQuantityChanged,
         onRemoveItem = viewModel::onRemoveItem,
         onBack = onBack,
+        onOrderClicked = {
+            viewModel.onOrderClicked()
+            onOrderPlaced()
+        },
         modifier = modifier,
     )
 }
@@ -87,6 +93,7 @@ fun CartScreen(
     onQuantityChanged: (Int, Int) -> Unit,
     onRemoveItem: (Int) -> Unit,
     onBack: () -> Unit,
+    onOrderClicked: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Scaffold(
@@ -124,7 +131,7 @@ fun CartScreen(
                 }
                 CartTotalsSummary(totals = uiState.totals)
                 Button(
-                    onClick = {},
+                    onClick = onOrderClicked,
                     shape = RoundedCornerShape(50),
                     modifier = Modifier
                         .fillMaxWidth()
@@ -212,7 +219,7 @@ fun CartItemRow(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 AsyncImage(
-                    model = item.thumbnailUrl,
+                    model = item.localThumbnailPath?.let(::File) ?: item.thumbnailUrl,
                     contentDescription = item.title,
                     modifier = Modifier
                         .size(56.dp)
